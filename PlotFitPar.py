@@ -9,7 +9,7 @@ Parser = argparse.ArgumentParser(description = 'options for plot')
 Parser.add_argument('-E',
                     type = str,
                     dest = 'Energy',
-                    default = 'None',
+                    default = 'S200',
                     help = 'Energy for plotting Field Size Factor')
 
 Parser.add_argument('-p',

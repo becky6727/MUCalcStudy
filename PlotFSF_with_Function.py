@@ -19,10 +19,16 @@ Parser.add_argument('-p',
                     dest = 'isPrint',
                     help = 'flag of printing the figure')
 
+Parser.add_argument('-spl',
+                    action = 'store_true',
+                    dest = 'isSPL',
+                    help = 'flag of spline interpolation')
+
 args = Parser.parse_args()
 
 Energy = args.Energy
 isPrint = args.isPrint
+isSPL = args.isSPL
 
 #errors
 if(Energy == 'None'):
@@ -61,7 +67,8 @@ for i in range(len(NozzleArray)):
                                             skiprows = 0, 
                                             unpack = True)
 
-    FSArray[i] =  tmpFSArray
+    #FSArray[i] =  tmpFSArray #cm^{2}
+    FSArray[i] =  numpy.sqrt(tmpFSArray) #cm
     FArray[i] = tmpFArray
     
     FSArray[i] = numpy.array(FSArray[i], dtype = float)
@@ -89,14 +96,20 @@ tmpSnoutArray = numpy.append(tmpSnoutArray, 31.0)
 
 #calculated field size factor array
 FSFList = [[] for i in range(len(NozzleArray))]
-FSList = numpy.arange(0.0, 250.0, 5.0)
+FSList = numpy.arange(0.0, 20.0, 0.5)
 
 ObjFSF = FSFactor.FSF(Energy)
+
+if(isSPL):
+    OptFSF = 'spl'
+else:
+    OptFSF = 'fit'
+    pass
 
 for i in range(len(NozzleArray)):
     for j in range(len(FSList)):
 
-        FSF = ObjFSF.GetValue(FSList[j], NozzleArray[i])        
+        FSF = ObjFSF.GetValue(FSList[j]**2, NozzleArray[i], OptFSF)        
         FSFList[i].append(FSF)
 
         pass
@@ -111,7 +124,7 @@ NozzleList = numpy.arange(26.9, 60.9, 1.0)
 for i in range(len(RefFSArray)):
     for j in range(len(NozzleList)):
         
-        FSF = ObjFSF.GetValue(RefFSArray[i], NozzleList[j])  
+        FSF = ObjFSF.GetValue(RefFSArray[i]**2, NozzleList[j], OptFSF)  
         FSnoutList[i].append(FSF)
         
         pass
@@ -140,7 +153,7 @@ c1.cd(Ncanvas).SetGridy()
 #c1.cd(Ncanvas).SetLogy()
 
 MinFS = 0.0
-MaxFS = 230.0
+MaxFS = 15.0
 
 MinF = 0.99* numpy.min(FArray)
 MaxF = 1.01* numpy.max(FArray)
@@ -155,7 +168,8 @@ for i in range(len(NozzleArray)):
     
     #gFSFArray[i].SetTitle('Field Size Factor: RMW = %s' %(Energy))
     gFSFArray[i].SetTitle('')
-    gFSFArray[i].GetXaxis().SetTitle('Field Size (cm^{2})')
+    #gFSFArray[i].GetXaxis().SetTitle('Field Size (cm^{2})')
+    gFSFArray[i].GetXaxis().SetTitle('Length of a side of square field (cm)')
     gFSFArray[i].GetXaxis().SetTitleFont(132)
     gFSFArray[i].GetXaxis().SetTitleOffset(1.1)
     gFSFArray[i].GetXaxis().SetTitleSize(0.045)
@@ -232,7 +246,7 @@ c1.cd(Ncanvas).SetGridy()
 #c1.cd(Ncanvas).SetLogy()
 
 MinSnout = 25.0
-MaxSnout = 70.0
+MaxSnout = 75.0
 
 MinF = 0.99* numpy.min(FSnoutArray)
 MaxF = 1.01* numpy.max(FSnoutArray)
@@ -302,10 +316,10 @@ Mark2 = ROOT.TMarker()
 
 for i in range(len(RefFSArray)):
 
-    Xpos = 0.88* MaxSnout
+    Xpos = 0.87* MaxSnout
     Ypos = 0.97* MaxF - (0.012* i)
 
-    Comment = 'FS = %d cm^{2}' %(RefFSArray[i])
+    Comment = 'FS = %d #times %d cm^{2}' %(RefFSArray[i], RefFSArray[i])
     
     if(i < 8):
         Latex2.SetTextColor(i + 2)
@@ -327,7 +341,7 @@ for i in range(len(RefFSArray)):
     Mark2.SetMarkerSize(1.3)
     Mark2.SetMarkerStyle(i + 20)
         
-    Mark2.DrawMarker(0.98* Xpos, Ypos + 0.003)
+    Mark2.DrawMarker(0.97* Xpos, Ypos + 0.003)
 
     pass
 
@@ -335,11 +349,16 @@ c1.Update()
 
 #Output of picture
 if(isPrint):
-
-    #EPS = './Figures/FSF_%s.eps' %(Energy)
-    GIF = './Figures/FSF_with_Function_%s.gif' %(Energy)
     
-    #c1.Print(EPS)
+    if(OptFSF != 'spl'):
+        JPG = './Figures/FSF_with_Function_%s.jpg' %(Energy)
+        GIF = './Figures/FSF_with_Function_%s.gif' %(Energy)
+    else:
+        JPG = './Figures/FSF_with_Function_%s_Spl.jpg' %(Energy)
+        GIF = './Figures/FSF_with_Function_%s_Spl.gif' %(Energy)
+        pass
+    
+    c1.Print(JPG)
     c1.Print(GIF)
     
     pass

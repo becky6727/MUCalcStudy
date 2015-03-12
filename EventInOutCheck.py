@@ -1,6 +1,7 @@
 import os, sys, time
 import numpy
 import argparse
+import src.DailyQACorr as DQACorr
 
 #options
 Parser = argparse.ArgumentParser(description = 'options for plot')
@@ -11,12 +12,19 @@ Parser.add_argument('-E',
                     default = 'S200',
                     help = 'Energy for analysis')
 
+Parser.add_argument('-dqa',
+                    action = 'store_true',
+                    dest = 'isDQA',
+                    help = 'flag of daily QA correction')
+
 args = Parser.parse_args()
 
 Energy = args.Energy
+isDQA = args.isDQA
 
 #FileData = './Data/CorrectedMU_%s.dat' %(Energy)
-FileData = './Data/CorrectedMU_wo_CSF_%s.dat' %(Energy)
+#FileData = './Data/CorrectedMU_wo_CSF_%s.dat' %(Energy)
+FileData = './Data/CorrectedMU_wo_CSF_%s_SPL.dat' %(Energy)
 
 if(not(os.path.exists(FileData))):
     print 'No such a file: %s' %(FileData)
@@ -24,14 +32,29 @@ if(not(os.path.exists(FileData))):
     pass
 
 DArray = numpy.loadtxt(FileData, skiprows = 0, unpack = True)
-#DArray[0]: Field Size, cm^2
-#DArray[1]: Nozzle position, cm
-#DArray[2]: dose/MU, VQA
-#DArray[3]: dose/MU, meas
-#DArray[4]: dose/MU, Corrected
+#DArray[0]: Date, serial
+#DArray[1]: Field Size, cm
+#DArray[2]: Nozzle position, cm
+#DArray[3]: SOBP, cm
+#DArray[4]: RS, mm
+#DArray[5]: dose/MU, VQA
+#DArray[6]: dose/MU, meas
+#DArray[7]: dose/MU, Corrected
 
-dMUArray = 100.0* ((DArray[3] - DArray[2])/DArray[2])
-dMUCorrArray = 100.0* ((DArray[3] - DArray[4])/DArray[4])
+#daily QA correction
+if(isDQA):    
+
+    ObjDQA = DQACorr.DailyQACorr(Energy)
+
+    for i in range(len(DArray[7])):
+        DArray[6][i] = ObjDQA.GetValue(DArray[0][i], DArray[6][i])
+        DArray[7][i] = ObjDQA.GetValue(DArray[0][i], DArray[7][i])
+        pass
+    
+    pass
+
+dMUArray = 100.0* ((DArray[6] - DArray[5])/DArray[5])
+dMUCorrArray = 100.0* ((DArray[6] - DArray[7])/DArray[7])
 
 #calc total # of events
 print 'Total Events = %d events' %(len(DArray[0]))

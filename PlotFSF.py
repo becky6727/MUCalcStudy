@@ -9,7 +9,7 @@ Parser = argparse.ArgumentParser(description = 'options for plot')
 Parser.add_argument('-E',
                     type = str,
                     dest = 'Energy',
-                    default = 'None',
+                    default = 'S200',
                     help = 'Energy for plotting Field Size Factor')
 
 Parser.add_argument('-Snout',
@@ -73,7 +73,8 @@ for i in range(len(SnoutArray)):
                                             skiprows = 0, 
                                             unpack = True)
 
-    FSArray[i] =  tmpFSArray
+    #FSArray[i] =  tmpFSArray  #cm^{2}
+    FSArray[i] =  numpy.sqrt(tmpFSArray) #cm
     FArray[i] = tmpFArray
     
     FSArray[i] = numpy.array(FSArray[i], dtype = float)
@@ -117,8 +118,8 @@ c1.cd(Ncanvas).SetGridx()
 c1.cd(Ncanvas).SetGridy()
 #c1.cd(Ncanvas).SetLogy()
 
-MinFS = 0.0
-MaxFS = 230.0
+MinFS = 0.0 #cm
+MaxFS = 16.0 #cm
 
 MinF = 0.99* numpy.min(FArray)
 MaxF = 1.01* numpy.max(FArray)
@@ -131,7 +132,8 @@ for i in range(len(SnoutArray)):
 
     #gFSFArray[i].SetTitle('Field Size Factor: RMW = %s' %(Energy))
     gFSFArray[i].SetTitle('')
-    gFSFArray[i].GetXaxis().SetTitle('Field Size (cm^{2})')
+    #gFSFArray[i].GetXaxis().SetTitle('Field Size (cm^{2})')
+    gFSFArray[i].GetXaxis().SetTitle('Length of a side of square field (cm)')
     gFSFArray[i].GetXaxis().SetTitleFont(132)
     gFSFArray[i].GetXaxis().SetTitleOffset(1.1)
     gFSFArray[i].GetXaxis().SetTitleSize(0.045)
@@ -271,7 +273,7 @@ for i in range(len(RefFSArray)):
     Xpos = 0.88* MaxSnout
     Ypos = 0.97* MaxF - (0.012* i)
 
-    Comment = 'FS = %d cm^{2}' %(RefFSArray[i])
+    Comment = 'FS = %d #times %d cm^{2}' %(RefFSArray[i], RefFSArray[i])
     
     if(i < 8):
         Latex2.SetTextColor(i + 2)

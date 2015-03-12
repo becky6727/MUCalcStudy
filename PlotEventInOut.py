@@ -2,6 +2,7 @@ import os, sys, time
 import numpy
 import ROOT
 import argparse
+import src.DailyQACorr as DQACorr
 
 #options
 Parser = argparse.ArgumentParser(description = 'options for plot')
@@ -17,13 +18,20 @@ Parser.add_argument('-p',
                     dest = 'isPrint',
                     help = 'flag of printing the figure')
 
+Parser.add_argument('-dqa',
+                    action = 'store_true',
+                    dest = 'isDQA',
+                    help = 'flag of daily QA correction')
+
 args = Parser.parse_args()
 
 Energy = args.Energy
 isPrint = args.isPrint
+isDQA = args.isDQA
 
 #FileData = './Data/CorrectedMU_%s.dat' %(Energy)
-FileData = './Data/CorrectedMU_wo_CSF_%s.dat' %(Energy)
+#FileData = './Data/CorrectedMU_wo_CSF_%s.dat' %(Energy)
+FileData = './Data/CorrectedMU_wo_CSF_%s_SPL.dat' %(Energy)
 
 if(not(os.path.exists(FileData))):
     print 'No such a file: %s' %(FileData)
@@ -31,38 +39,52 @@ if(not(os.path.exists(FileData))):
     pass
 
 DArray = numpy.loadtxt(FileData, skiprows = 0, unpack = True)
-#DArray[0]: Field Size, cm^2
-#DArray[1]: Nozzle position, cm
-#DArray[2]: dose/MU, VQA
-#DArray[3]: dose/MU, meas
-#DArray[4]: dose/MU, Corrected
+#DArray[0]: Date, serial
+#DArray[1]: Field Size, cm
+#DArray[2]: Nozzle position, cm
+#DArray[3]: SOBP, cm
+#DArray[4]: RS, cm
+#DArray[5]: dose/MU, VQA
+#DArray[6]: dose/MU, meas
+#DArray[7]: dose/MU, Corrected
+
+if(isDQA):    
+
+    ObjDQA = DQACorr.DailyQACorr(Energy)
+
+    for i in range(len(DArray[7])):
+        DArray[6][i] = ObjDQA.GetValue(DArray[0][i], DArray[6][i])
+        DArray[7][i] = ObjDQA.GetValue(DArray[0][i], DArray[7][i])
+        pass
+    
+    pass
 
 #difference between befor and after correction
-dMUArray = 100.0* ((DArray[3] - DArray[2])/DArray[2])
-dMUCorrArray = 100.0* ((DArray[3] - DArray[4])/DArray[4])
+dMUArray = 100.0* ((DArray[6] - DArray[5])/DArray[5])
+dMUCorrArray = 100.0* ((DArray[6] - DArray[7])/DArray[7])
 
 #data selection
 FSArray = [0 for i in range(5)]
 NozzleArray = [0 for i in range(5)]
 
-FSArray[0] = numpy.array(DArray[0])
-FSArray[1] = numpy.array(DArray[0][numpy.where((numpy.abs(dMUArray) < 1.0) &
+FSArray[0] = numpy.array(DArray[1])
+FSArray[1] = numpy.array(DArray[1][numpy.where((numpy.abs(dMUArray) < 1.0) &
                                                (numpy.abs(dMUCorrArray) < 1.0))])
-FSArray[2] = numpy.array(DArray[0][numpy.where((numpy.abs(dMUArray) > 1.0) &
+FSArray[2] = numpy.array(DArray[1][numpy.where((numpy.abs(dMUArray) > 1.0) &
                                                (numpy.abs(dMUCorrArray) < 1.0))])
-FSArray[3] = numpy.array(DArray[0][numpy.where((numpy.abs(dMUArray) < 1.0) &
+FSArray[3] = numpy.array(DArray[1][numpy.where((numpy.abs(dMUArray) < 1.0) &
                                                (numpy.abs(dMUCorrArray) > 1.0))])
-FSArray[4] = numpy.array(DArray[0][numpy.where((numpy.abs(dMUArray) > 1.0) &
+FSArray[4] = numpy.array(DArray[1][numpy.where((numpy.abs(dMUArray) > 1.0) &
                                                (numpy.abs(dMUCorrArray) > 1.0))])
 
-NozzleArray[0] = numpy.array(DArray[1])
-NozzleArray[1] = numpy.array(DArray[1][numpy.where((numpy.abs(dMUArray) < 1.0) &
+NozzleArray[0] = numpy.array(DArray[2])
+NozzleArray[1] = numpy.array(DArray[2][numpy.where((numpy.abs(dMUArray) < 1.0) &
                                                    (numpy.abs(dMUCorrArray) < 1.0))])
-NozzleArray[2] = numpy.array(DArray[1][numpy.where((numpy.abs(dMUArray) > 1.0) &
+NozzleArray[2] = numpy.array(DArray[2][numpy.where((numpy.abs(dMUArray) > 1.0) &
                                                    (numpy.abs(dMUCorrArray) < 1.0))])
-NozzleArray[3] = numpy.array(DArray[1][numpy.where((numpy.abs(dMUArray) < 1.0) &
+NozzleArray[3] = numpy.array(DArray[2][numpy.where((numpy.abs(dMUArray) < 1.0) &
                                                    (numpy.abs(dMUCorrArray) > 1.0))])
-NozzleArray[4] = numpy.array(DArray[1][numpy.where((numpy.abs(dMUArray) > 1.0) &
+NozzleArray[4] = numpy.array(DArray[2][numpy.where((numpy.abs(dMUArray) > 1.0) &
                                                    (numpy.abs(dMUCorrArray) > 1.0))])
 
 #drow histgram
@@ -85,10 +107,10 @@ c1.cd(Ncanvas).SetGridx()
 c1.cd(Ncanvas).SetGridy()
 
 MinFS = 0.0
-MaxFS = numpy.max(DArray[0]) + 5.0
+MaxFS = numpy.max(DArray[1]) + 5.0
 
-MinNozzle = 25.0
-MaxNozzle = 60.0
+MinNozzle = numpy.min(DArray[2]) - 5.0
+MaxNozzle = numpy.max(DArray[2]) + 5.0
 
 gFSArray = [0 for i in range(len(FSArray))]
 
@@ -129,7 +151,8 @@ c1.cd(Ncanvas).SetGridy()
 
 HistFSArray = [0 for i in range(len(FSArray))]
 
-NBinFS = int((MaxFS - MinFS)/4.0)
+FSBin = 1.0
+NBinFS = int((MaxFS - MinFS)/FSBin)
 
 for i in range(len(HistFSArray)):
     HistFSArray[i] = ROOT.TH1F('HistFS_%02d' %(i), 'hist of field size', NBinFS, MinFS, MaxFS)
@@ -176,7 +199,8 @@ c1.cd(Ncanvas).SetGridy()
 
 HistNozzleArray = [0 for i in range(len(NozzleArray))]
 
-NBinNozzle = int((MaxNozzle - MinNozzle)/2.0)
+NozzleBin = 1.0
+NBinNozzle = int((MaxNozzle - MinNozzle)/NozzleBin)
 
 for i in range(len(HistNozzleArray)):
     HistNozzleArray[i] = ROOT.TH1F('HistNozzle_%02d' %(i), 'hist of Nozzle', 

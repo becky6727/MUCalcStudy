@@ -2,6 +2,7 @@ import os, sys, time
 import numpy
 import ROOT
 import argparse
+import src.DailyQACorr as DQACorr
 
 #options
 Parser = argparse.ArgumentParser(description = 'options for plot')
@@ -17,13 +18,20 @@ Parser.add_argument('-p',
                     dest = 'isPrint',
                     help = 'flag of printing the figure')
 
+Parser.add_argument('-dqa',
+                    action = 'store_true',
+                    dest = 'isDQA',
+                    help = 'flag of daily QA correction')
+
 args = Parser.parse_args()
 
 Energy = args.Energy
 isPrint = args.isPrint
+isDQA = args.isDQA
 
 #FileData = './Data/CorrectedMU_%s.dat' %(Energy)
-FileData = './Data/CorrectedMU_wo_CSF_%s.dat' %(Energy)
+#FileData = './Data/CorrectedMU_wo_CSF_%s.dat' %(Energy)
+FileData = './Data/CorrectedMU_wo_CSF_%s_SPL.dat' %(Energy)
 
 if(not(os.path.exists(FileData))):
     print 'No such a file: %s' %(FileData)
@@ -37,14 +45,25 @@ DArray = numpy.loadtxt(FileData, skiprows = 0, unpack = True)
 #DArray[3]: dose/MU, meas
 #DArray[4]: dose/MU, Corrected
 
-FSArray = numpy.array(DArray[0])
-NozzleArray = numpy.array(DArray[1])
-MUArray = numpy.array(DArray[3])
-VQAMUArray = numpy.array(DArray[2])
-CorrMUArray = numpy.array(DArray[4])
+FSArray = numpy.array(DArray[1])
+NozzleArray = numpy.array(DArray[2])
+MUArray = numpy.array(DArray[6])
+VQAMUArray = numpy.array(DArray[5])
+CorrMUArray = numpy.array(DArray[7])
 
-dMUArray = 100.0* ((DArray[3] - DArray[2])/DArray[2])
-dMUCorrArray = 100.0* ((DArray[3] - DArray[4])/DArray[4])
+if(isDQA):    
+
+    ObjDQA = DQACorr.DailyQACorr(Energy)
+
+    for i in range(len(DArray[7])):
+        DArray[6][i] = ObjDQA.GetValue(DArray[0][i], DArray[6][i])
+        DArray[7][i] = ObjDQA.GetValue(DArray[0][i], DArray[7][i])
+        pass
+    
+    pass
+
+dMUArray = 100.0* ((DArray[6] - DArray[5])/DArray[5])
+dMUCorrArray = 100.0* ((DArray[6] - DArray[7])/DArray[7])
 
 #drow histgram
 c1 = ROOT.TCanvas('c1', 'Edge Scattering', 0, 0, 800, 750)
@@ -163,10 +182,10 @@ h_dMU.Draw()
 h_dMUCorr.Draw('same')
 
 #fitting
-MinFit = -0.8
-MaxFit = 2.0
-#MinFit = MinDiff
-#MaxFit = MaxDiff
+#MinFit = -0.8
+#MaxFit = 2.0
+MinFit = MinDiff
+MaxFit = MaxDiff
 
 fGaussFit = ROOT.TF1('fGaussFit', 'gaus', MinFit, MaxFit)
 
