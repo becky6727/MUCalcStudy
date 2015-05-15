@@ -3,8 +3,6 @@
 #ver1.0
 
 import os, sys, time
-import numpy
 import argparse
-from openpyxl import Workbook #for writing excel files
-from openpyxl.cell import get_column_letter
+import xlsxwriter #for writing xlsx files(not read xlsx files with this module)
 

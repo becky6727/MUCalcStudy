@@ -23,15 +23,24 @@ Parser.add_argument('-dqa',
                     dest = 'isDQA',
                     help = 'flag of daily QA correction')
 
+Parser.add_argument('-spl',
+                    action = 'store_true',
+                    dest = 'isSPL',
+                    help = 'flag of spline interpolation')
+
 args = Parser.parse_args()
 
 Energy = args.Energy
 isPrint = args.isPrint
 isDQA = args.isDQA
+isSPL = args.isSPL
 
 #FileData = './Data/CorrectedMU_%s.dat' %(Energy)
-#FileData = './Data/CorrectedMU_wo_CSF_%s.dat' %(Energy)
-FileData = './Data/CorrectedMU_wo_CSF_%s_SPL.dat' %(Energy)
+if(isSPL):
+    FileData = './Data/CorrectedMU_wo_CSF_%s_SPL.dat' %(Energy)
+else:
+    FileData = './Data/CorrectedMU_wo_CSF_%s.dat' %(Energy)
+    pass
 
 if(not(os.path.exists(FileData))):
     print 'No such a file: %s' %(FileData)
@@ -141,8 +150,8 @@ c1.cd(Ncanvas).SetGridx()
 c1.cd(Ncanvas).SetGridy()
 
 MaxDiff = 4.0
-MinDiff = -3.5
-NBin = int((MaxDiff - MinDiff)/0.15)
+MinDiff = -4.0
+NBin = int((MaxDiff - MinDiff)/0.25)
 
 h_dMU = ROOT.TH1F('h_dMU', 'dose/MU', NBin, MinDiff, MaxDiff)
 h_dMUCorr = ROOT.TH1F('h_dMUCorr', 'dose/MU, modified', NBin, MinDiff, MaxDiff)
@@ -182,10 +191,10 @@ h_dMU.Draw()
 h_dMUCorr.Draw('same')
 
 #fitting
-#MinFit = -0.8
-#MaxFit = 2.0
-MinFit = MinDiff
-MaxFit = MaxDiff
+#MinFit = -1.0
+#MaxFit = 1.0
+MinFit = h_dMUCorr.GetMean() - 1.5* h_dMUCorr.GetRMS()
+MaxFit = h_dMUCorr.GetMean() + 1.5* h_dMUCorr.GetRMS()
 
 fGaussFit = ROOT.TF1('fGaussFit', 'gaus', MinFit, MaxFit)
 
@@ -260,9 +269,16 @@ LCorr.Draw('same')
 c1.Update()
 
 if(isPrint):
-    GIF = './Figures/dMU_after_Modification_%s.gif' %(Energy)
-    JPG = './Figures/dMU_after_Modification_%s.jpg' %(Energy)
-    EPS = './Figures/EPS/dMU_after_Modification_%s.eps' %(Energy)
+    
+    if(isSPL):
+        GIF = './Figures/dMU_after_Modification_%s_SPL.gif' %(Energy)
+        JPG = './Figures/dMU_after_Modification_%s_SPL.jpg' %(Energy)
+        EPS = './Figures/EPS/dMU_after_Modification_%s_SPL.eps' %(Energy)
+    else:
+        GIF = './Figures/dMU_after_Modification_%s.gif' %(Energy)
+        JPG = './Figures/dMU_after_Modification_%s.jpg' %(Energy)
+        EPS = './Figures/EPS/dMU_after_Modification_%s.eps' %(Energy)
+        pass
     
     c1.Print(GIF)
     c1.Print(JPG)

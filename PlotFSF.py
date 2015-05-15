@@ -46,17 +46,20 @@ if(Energy == 'S200'):
     SnoutArray = numpy.arange(5, 30, 5)
     SnoutArray = numpy.append(SnoutArray, 31)
 else:
-    SnoutArray = [0, 10, 20, 31]
+    SnoutArray = [0, 10]
     SnoutArray = numpy.array(SnoutArray)
     pass
 
 FSArray = [0 for i in range(len(SnoutArray))]
 FArray = [0 for i in range(len(SnoutArray))]
+#FSArray = [0 for i in range(17)]
+#FArray = [0 for i in range(17)]
 
 if(Energy == 'S200'):
     FSnoutArray = [[] for i in range(9)]
 else:
-    FSnoutArray = [[] for i in range(8)]
+    #FSnoutArray = [[] for i in range(8)]
+    FSnoutArray = [[] for i in range(17)]
     pass
 
 RefFSArray = []
@@ -72,15 +75,15 @@ for i in range(len(SnoutArray)):
                                             comments = '#', 
                                             skiprows = 0, 
                                             unpack = True)
-
-    #FSArray[i] =  tmpFSArray  #cm^{2}
-    FSArray[i] =  numpy.sqrt(tmpFSArray) #cm
+    
+    FSArray[i] =  tmpFSArray  #cm^{2}
+    #FSArray[i] =  numpy.sqrt(tmpFSArray) #cm
     FArray[i] = tmpFArray
     
     FSArray[i] = numpy.array(FSArray[i], dtype = float)
     FArray[i] = numpy.array(FArray[i], dtype = float)
 
-    RefFSArray = FSArray[0]
+    RefFSArray = FSArray[i]
     
     for j in range(len(RefFSArray)):
         
@@ -93,6 +96,7 @@ for i in range(len(SnoutArray)):
         
     pass
 
+print FSnoutArray
 FSnoutArray = numpy.array(FSnoutArray, dtype = float)
 SnoutArray = (SnoutArray + 26.9)
 #SnoutArray = numpy.float64(SnoutArray)

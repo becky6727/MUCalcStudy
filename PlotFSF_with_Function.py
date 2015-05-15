@@ -40,7 +40,8 @@ if(Energy == 'S200'):
     NozzleArray = numpy.arange(5, 30, 5)
     NozzleArray = numpy.append(NozzleArray, 31)
 else:
-    NozzleArray = [0, 10, 20, 31]
+    #NozzleArray = [0, 10, 20, 31]
+    NozzleArray = [0, 10]
     NozzleArray = numpy.array(NozzleArray)
     pass
 
@@ -50,7 +51,8 @@ FArray = [0 for i in range(len(NozzleArray))]
 if(Energy == 'S200'):
     FSnoutArray = [[] for i in range(9)]
 else:
-    FSnoutArray = [[] for i in range(8)]
+    #FSnoutArray = [[] for i in range(8)]
+    FSnoutArray = [[] for i in range(17)]
     pass
 
 RefFSArray = []
@@ -67,8 +69,7 @@ for i in range(len(NozzleArray)):
                                             skiprows = 0, 
                                             unpack = True)
 
-    #FSArray[i] =  tmpFSArray #cm^{2}
-    FSArray[i] =  numpy.sqrt(tmpFSArray) #cm
+    FSArray[i] =  tmpFSArray #cm
     FArray[i] = tmpFArray
     
     FSArray[i] = numpy.array(FSArray[i], dtype = float)
@@ -96,7 +97,7 @@ tmpSnoutArray = numpy.append(tmpSnoutArray, 31.0)
 
 #calculated field size factor array
 FSFList = [[] for i in range(len(NozzleArray))]
-FSList = numpy.arange(0.0, 20.0, 0.5)
+FSList = numpy.arange(0.0, 20.0, 0.1)
 
 ObjFSF = FSFactor.FSF(Energy)
 

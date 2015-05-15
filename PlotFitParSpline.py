@@ -77,8 +77,6 @@ for i in range(len(ParArraySpl)):
     ParArraySpl[i] = scipy.interpolate.splev(FSArraySpl, Spl, der = 0)
     pass
 
-print scipy.interpolate.splev(197.0, Spl, der = 0)
-
 #set graphs
 MinFS = 0.0
 MaxFS = 230.0

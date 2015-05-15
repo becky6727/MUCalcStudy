@@ -22,7 +22,6 @@ if(Energy == 'None'):
     sys.exit()
     pass
 
-
 if(Energy == 'S200'):
     SnoutArray = numpy.arange(5, 30, 5)
     SnoutArray = numpy.append(SnoutArray, 31)

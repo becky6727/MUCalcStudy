@@ -107,10 +107,10 @@ c1.cd(Ncanvas).SetGridx()
 c1.cd(Ncanvas).SetGridy()
 
 MinFS = 0.0
-MaxFS = numpy.max(DArray[1]) + 5.0
+MaxFS = numpy.max(DArray[1]) + 3.0
 
-MinNozzle = numpy.min(DArray[2]) - 5.0
-MaxNozzle = numpy.max(DArray[2]) + 5.0
+MinNozzle = numpy.min(DArray[2]) - 3.0
+MaxNozzle = numpy.max(DArray[2]) + 3.0
 
 gFSArray = [0 for i in range(len(FSArray))]
 
@@ -151,8 +151,8 @@ c1.cd(Ncanvas).SetGridy()
 
 HistFSArray = [0 for i in range(len(FSArray))]
 
-FSBin = 1.0
-NBinFS = int((MaxFS - MinFS)/FSBin)
+FSBin = 0.5
+NBinFS = int((MaxFS - MinFS)/FSBin) + 1
 
 for i in range(len(HistFSArray)):
     HistFSArray[i] = ROOT.TH1F('HistFS_%02d' %(i), 'hist of field size', NBinFS, MinFS, MaxFS)
@@ -200,7 +200,7 @@ c1.cd(Ncanvas).SetGridy()
 HistNozzleArray = [0 for i in range(len(NozzleArray))]
 
 NozzleBin = 1.0
-NBinNozzle = int((MaxNozzle - MinNozzle)/NozzleBin)
+NBinNozzle = int((MaxNozzle - MinNozzle)/NozzleBin) + 1
 
 for i in range(len(HistNozzleArray)):
     HistNozzleArray[i] = ROOT.TH1F('HistNozzle_%02d' %(i), 'hist of Nozzle', 

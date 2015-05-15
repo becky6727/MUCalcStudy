@@ -57,7 +57,7 @@ dMUArray = 100.0* ((DArray[6] - DArray[5])/DArray[5])
 dMUCorrArray = 100.0* ((DArray[6] - DArray[7])/DArray[7])
 
 #calc total # of events
-print 'Total Events = %d events' %(len(DArray[0]))
+print '%s: Total Events = %d events' %(Energy, len(DArray[0]))
 
 #calc within 1% diff. w/ or w/o modification
 tmpArray = DArray[0][numpy.where((numpy.abs(dMUArray) < 1.0) &
@@ -82,3 +82,5 @@ tmpArray = DArray[0][numpy.where((numpy.abs(dMUCorrArray) > 1.0) &
                                  (numpy.abs(dMUArray) > 1.0))]
 
 print 'out of 1%% diff. w/ or w/o modification = %d events' %(len(tmpArray))
+
+#end of program
